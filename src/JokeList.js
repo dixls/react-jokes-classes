@@ -1,15 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Component } from "react";
 import axios from "axios";
 import Joke from "./Joke";
 import "./JokeList.css";
 
-function JokeList({ numJokesToGet = 10 }) {
-  const [jokes, setJokes] = useState([]);
+class JokeList extends Component {
+  static defaultProps = { numJokesToGet = 10 };
 
-  /* get jokes if there are no jokes */
+  constructor(props) {
+    super(props);
+    this.state = {
+      jokes: []
+    };
 
-  useEffect(function() {
-    async function getJokes() {
+    this.generateNewJokes = this.generateNewJokes.bind(this);
+    this.vote = this.vote.bind(this);
+  }
+
+    async getJokes() {
       let j = [...jokes];
       let seenJokes = new Set();
       try {
@@ -18,7 +25,7 @@ function JokeList({ numJokesToGet = 10 }) {
             headers: { Accept: "application/json" }
           });
           let { status, ...jokeObj } = res.data;
-  
+
           if (!seenJokes.has(jokeObj.id)) {
             seenJokes.add(jokeObj.id);
             j.push({ ...jokeObj, votes: 0 });
@@ -32,18 +39,12 @@ function JokeList({ numJokesToGet = 10 }) {
       }
     }
 
-    if (jokes.length === 0) getJokes();
-  }, [jokes, numJokesToGet]);
+  
 
-  /* empty joke list and then call getJokes */
-
-  function generateNewJokes() {
-    setJokes([]);
-  }
 
   /* change vote for this id by delta (+1 or -1) */
 
-  function vote(id, delta) {
+  vote(id, delta) {
     setJokes(allJokes =>
       allJokes.map(j => (j.id === id ? { ...j, votes: j.votes + delta } : j))
     );
@@ -51,15 +52,15 @@ function JokeList({ numJokesToGet = 10 }) {
 
   /* render: either loading spinner or list of sorted jokes. */
 
-  if (jokes.length) {
+  if(jokes.length) {
     let sortedJokes = [...jokes].sort((a, b) => b.votes - a.votes);
-  
+
     return (
       <div className="JokeList">
         <button className="JokeList-getmore" onClick={generateNewJokes}>
           Get New Jokes
         </button>
-  
+
         {sortedJokes.map(j => (
           <Joke text={j.joke} key={j.id} id={j.id} votes={j.votes} vote={vote} />
         ))}
@@ -67,7 +68,7 @@ function JokeList({ numJokesToGet = 10 }) {
     );
   }
 
-  return null;
+return null;
 
 }
 
